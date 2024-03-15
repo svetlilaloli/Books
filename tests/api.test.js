@@ -1,60 +1,43 @@
-const chai = require('chai');
-const chaiHttp = require('chai-http');
-const server = require('..\\src\\server');
+import { server } from '../src/server.js';
+import request from 'supertest';
+import * as chai from 'chai';
+
 const expect = chai.expect;
 
-chai.use(chaiHttp);
-
 describe('Books API', () => {
-    let bookId;
-    it('Should POST a book', (done) => {
-        const book = { id: "1", title: "Test Book", autor: "Test Testov" };
-        chai.request(server).post('/books').send(book).end((err, res) => {
-            if (err) {
-                return done();
-            };
-            expect(res).to.have.status(201);
-            expect(res.body).to.be.a('object');
-            expect(res.body).to.have.property('id');
-            expect(res.body).to.have.property('title');
-            expect(res.body).to.have.property('autor');
-            bookId = res.body.id;
-            done();
-        });
+    it('should return an empty array when no books are added', async () => {
+        const res = await request(server).get('/books');
+        expect(res.status).to.equal(200);
+        expect(res.body).to.be.an('array').that.is.empty;
     });
-    it('Should GET all books', (done) => {
-        chai.request(server).get('/books').end((err, res) => {
-            if (err) {
-                return done();
-            };
-            expect(res).to.have.status(200);
-            expect(res.body).to.be.a('array');
-            done();
-        });
+        
+    it('should add a new book', async () => {
+        const newBook = { id: '1', title: 'Test Book', author: 'Test Author' };
+        const res = await request(server)
+            .post('/books')
+            .send(newBook);
+        expect(res.status).to.equal(201);
+        expect(res.body).to.deep.equal(newBook);
     });
-    it('Should GET a single book', (done) => {
-        chai.request(server).get(`/books/${bookId}`).end((err, res) => {
-            if (err) {
-                return done();
-            };
-            expect(res).to.have.status(200);
-            expect(res.body).to.be.a('object');
-            expect(res.body).to.have.property('title');
-            expect(res.body).to.have.property('autor');
-            done();
-        });
+
+    it('should return a book by id', async () => {
+        const testBook = { id: '1', title: 'Test Book', author: 'Test Author' };
+        const res = await request(server).get('/books/1');
+        expect(res.status).to.equal(200);
+        expect(res.body).to.deep.equal(testBook);
     });
-    it('Should PUT an existing book', (done) => {
-        const updatedBook = { id: bookId, title: "Updated title", author: "Updated author"};
-        chai.request(server).put(`/books/${bookId}`).send(updatedBook).end((err, res) => {
-            if (err) {
-                return done();
-            };
-            expect(res).to.have.status(200);
-            expect(res.body).to.be.a('object');
-            expect(res.body.title).to.equal('Updated title');
-            expect(res.body.author).to.equal('Updated author');
-            done();
-        });
+
+    it('should update a book by id', async () => {
+        const updatedBook = { id: '1', title: 'Updated Test Book', author: 'Updated Test Author' };
+        const res = await request(server)
+            .put('/books/1')
+            .send(updatedBook);
+        expect(res.status).to.equal(200);
+        expect(res.body).to.deep.equal(updatedBook);
     });
-})
+
+    it('should delete a book by id', async () => {
+        const res = await request(server).delete('/books/1');
+        expect(res.status).to.equal(204);
+    });
+});
