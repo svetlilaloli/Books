@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const server = express();
-const bodyParser = require('body-parser');
+import bodyParser from 'body-parser';
 
 server.use(bodyParser.json());
 
@@ -42,8 +42,8 @@ server.delete('/books/:id', (req, res) => {
     }
 });
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
     server.listen(3000, () => console.log('Server is up and running on http://localhost:3000'));
 }
 
-module.exports = server; // Exporting for testing
+export { server }; // Exporting for testing
